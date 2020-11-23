@@ -36,7 +36,10 @@ def placeorder():
                     'Payment means: ' + str(request.json['paymentMeans']) +
                     'Delivery means: ' + str(request.json['deliveryMeans'])
                 )
-                msg.add_alternative('<b>COUCOU</b>', subtype='html')
+                msg.add_alternative('<b>Cart:</b> ' + request.json['cart'] +
+                    '<br><b>Payment means</b>: ' + str(request.json['paymentMeans']) +
+                    '<br><b>Delivery means</b>: ' + str(request.json['deliveryMeans']
+                ), subtype='html')
 
                 server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
                 server.ehlo()
