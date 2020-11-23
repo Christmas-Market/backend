@@ -25,11 +25,22 @@ def placeorder():
             print('>>> reCaptcha detects a safe interaction')
             print(result['score'])
             print('>>> Order placed')
+
             with open('order.json', 'w', encoding='utf-8') as file:
                 file.write(request.json['cart'])
-            with smtplib.SMTP_SSL(os.environ['SMTP_SERVER'], 587, context=context) as server:
+
+            try:
+                server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
+                server.ehlo()
+                server.starttls(context=context)
+                server.ehlo()
                 server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
                 server.sendmail('info@christmas-market.be', 'guillaumedemoff@gmail.com', 'Subject: Christmas-Market Order #001\n\nCart: ' + request.json['cart'].encode('utf-8'))
+            except Exception as e:
+                print(e)
+            finally:
+                server.quit()
+
             return jsonify({'ok': True})
     return abort(400)
 
