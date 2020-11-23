@@ -5,6 +5,7 @@ import os
 import requests
 import smtplib
 from email.message import EmailMessage
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 CORS(app)
@@ -25,16 +26,17 @@ def placeorder():
             print(result['score'])
             print('>>> Order placed')
 
-            with open('order.json', 'w', encoding='utf-8') as file:
-                file.write(request.json['cart'])
-
             try:
                 msg = EmailMessage()
-
                 msg['Subject'] = '[Christmas Market] Order #001'
                 msg['From'] = 'Christmas Market <info@christmas-market.be>'
                 msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
-                msg.set_content('Cart: ' + request.json['cart'].encode('utf-8'))
+                msg.set_content(
+                    'Cart: ' + request.json['cart'] +
+                    'Payment means: ' + str(request.json['paymentMeans']) +
+                    'Delivery means: ' + str(request.json['deliveryMeans'])
+                )
+                msg.add_alternative('<b>COUCOU</b>', subtype='html')
 
                 server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
                 server.ehlo()
@@ -43,6 +45,7 @@ def placeorder():
                 server.send_message(msg)
             except Exception as e:
                 print(e)
+                return abort(400)
             finally:
                 server.quit()
 
