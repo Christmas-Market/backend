@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 
-import json
 import os
 import requests
 
@@ -23,8 +22,8 @@ def placeorder():
             print('>>> reCaptcha detects a safe interaction')
             print(result['score'])
             print('>>> Order placed')
-            cart = json.loads(request.json['cart'])
-            print(cart)
+            with open('order.json', 'w') as file:
+                file.write(request.json['cart'])
             return jsonify({'ok': True})
     return abort(400)
 
