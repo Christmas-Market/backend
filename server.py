@@ -3,12 +3,11 @@ from flask_cors import CORS
 
 import os
 import requests
-import smtplib, ssl
+import smtplib
+from email.message import EmailMessage
 
 app = Flask(__name__)
 CORS(app)
-
-context = ssl.create_default_context()
 
 @app.route('/', methods=['GET'])
 def home():
@@ -30,12 +29,18 @@ def placeorder():
                 file.write(request.json['cart'])
 
             try:
+                msg = EmailMessage()
+
+                msg['Subject'] = '[Christmas Market] Order #001'
+                msg['From'] = 'Christmas Market <info@christmas-market.be>'
+                msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
+                msg.set_content('Cart: ' + request.json['cart'].encode('utf-8'))
+
                 server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
                 server.ehlo()
-                server.starttls(context=context)
-                server.ehlo()
+                server.starttls()
                 server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
-                server.sendmail('info@christmas-market.be', 'guillaumedemoff@gmail.com', 'Subject: Christmas-Market Order #001\n\nCart: ' + request.json['cart'].encode('utf-8'))
+                server.send_message(msg)
             except Exception as e:
                 print(e)
             finally:
