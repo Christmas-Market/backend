@@ -23,7 +23,7 @@ def placeorder():
             print('>>> reCaptcha detects a safe interaction')
             print(result['score'])
             print('>>> Order placed')
-            cart = json.loads(request.json['cart'].encode('utf-8'))
+            cart = json.loads(request.json['cart'])
             print(cart)
             return jsonify({'ok': True})
     return abort(400)
