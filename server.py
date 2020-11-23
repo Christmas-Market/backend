@@ -25,6 +25,16 @@ def placeorder():
             print('>>> reCaptcha detects a safe interaction')
             print(result['score'])
             print('>>> Order placed')
+            
+            cart = ''
+            if 'cart' in request.json:
+                cart = request.json['cart']
+            paymentMeans = ''
+            if 'payment' in request.json:
+                paymentMeans = request.json['payment']
+            deliveryMeans = ''
+            if 'delivery' in request.json:
+                deliveryMeans = request.json['delivery']
 
             try:
                 msg = EmailMessage()
@@ -32,14 +42,15 @@ def placeorder():
                 msg['From'] = 'Christmas Market <info@christmas-market.be>'
                 msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
                 msg.set_content(
-                    'Cart: ' + request.json['cart'] +
-                    'Payment means: ' + str(request.json['paymentMeans']) +
-                    'Delivery means: ' + str(request.json['deliveryMeans'])
+                    'Cart: ' + cart +
+                    'Payment means: ' + str(paymentMeans) +
+                    'Delivery means: ' + str(deliveryMeans)
                 )
-                msg.add_alternative('<b>Cart:</b> ' + request.json['cart'] +
-                    '<br><b>Payment means</b>: ' + str(request.json['paymentMeans']) +
-                    '<br><b>Delivery means</b>: ' + str(request.json['deliveryMeans']
-                ), subtype='html')
+                msg.add_alternative(
+                    '<b>Cart:</b> ' + cart +
+                    '<br><b>Payment means</b>: ' + str(paymentMeans) +
+                    '<br><b>Delivery means</b>: ' + str(deliveryMeans)
+                , subtype='html')
 
                 server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
                 server.ehlo()
