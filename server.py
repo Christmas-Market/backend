@@ -29,12 +29,9 @@ def placeorder():
             cart = ''
             if 'cart' in request.json:
                 cart = request.json['cart']
-            paymentMeans = ''
-            if 'payment' in request.json:
-                paymentMeans = request.json['payment']
-            deliveryMeans = ''
-            if 'delivery' in request.json:
-                deliveryMeans = request.json['delivery']
+            options = ''
+            if 'options' in request.json:
+                options = request.json['options']
 
             try:
                 msg = EmailMessage()
@@ -43,13 +40,11 @@ def placeorder():
                 msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
                 msg.set_content(
                     'Cart: ' + cart +
-                    'Payment means: ' + str(paymentMeans) +
-                    'Delivery means: ' + str(deliveryMeans)
+                    'Options: ' + str(options)
                 )
                 msg.add_alternative(
                     '<b>Cart:</b> ' + cart +
-                    '<br><b>Payment means</b>: ' + str(paymentMeans) +
-                    '<br><b>Delivery means</b>: ' + str(deliveryMeans)
+                    '<br><b>Options</b>: ' + str(options)
                 , subtype='html')
 
                 server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
