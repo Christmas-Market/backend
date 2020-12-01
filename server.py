@@ -36,19 +36,17 @@ def placeorder():
     # ReCaptcha detected a safe interaction
     print('>>> reCaptcha detects a safe interaction', result['score'])
     try:
+        customer = params['customer']
+
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
         msg['From'] = 'Christmas Market <info@christmas-market.be>'
         msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
         msg.set_content(
-            'Customer: ' + params['customer'] +
-            'Cart: ' + params['cart'] +
-            'Options: ' + str(params['options'])
+            'Nouvelle commande par :\n- Nom : {}\nE-mail : {}\nTéléphone : {}\n\n'.format(customer['name'], customer['email'], customer['phone'])
         )
         msg.add_alternative(
-            '<b>Customer:</b> ' + params['customer'] +
-            '<b>Cart:</b> ' + params['cart'] +
-            '<br><b>Options</b>: ' + str(params['options'])
+            '<b>Customer:</b>'
         , subtype='html')
 
         server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
