@@ -17,49 +17,51 @@ def home():
 @app.route('/placeorder', methods=['POST'])
 def placeorder():
     print('>>> Placing a new order...')
-    url = 'https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'.format(os.environ['RECAPTCHA_SECRET_KEY'], request.json['token'])
+
+    # Check the parameters
+    params = request.json
+    if 'token' not in params or 'cart' not in params or 'options' not in params or 'customer' not in params:
+        return abort(400)
+
+    # Check the captcha
+    url = 'https://www.google.com/recaptcha/api/siteverify?secret={}&response={}'.format(os.environ['RECAPTCHA_SECRET_KEY'], params['token'])
     resp = requests.post(url)
-    if resp.status_code == 200:
-        result = resp.json()
-        if result['success'] and result['score'] > 0.5:
-            print('>>> reCaptcha detects a safe interaction')
-            print(result['score'])
-            print('>>> Order placed')
-            
-            cart = ''
-            if 'cart' in request.json:
-                cart = request.json['cart']
-            options = ''
-            if 'options' in request.json:
-                options = request.json['options']
+    if resp.status_code != 200:
+        return abort(400)
 
-            try:
-                msg = EmailMessage()
-                msg['Subject'] = '[Christmas Market] Order #001'
-                msg['From'] = 'Christmas Market <info@christmas-market.be>'
-                msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
-                msg.set_content(
-                    'Cart: ' + cart +
-                    'Options: ' + str(options)
-                )
-                msg.add_alternative(
-                    '<b>Cart:</b> ' + cart +
-                    '<br><b>Options</b>: ' + str(options)
-                , subtype='html')
+    result = resp.json()
+    if 'success' not in result or 'score' not in result or not result['success'] or result['score'] <= 0.5:
+        return abort(400)
 
-                server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
-                server.ehlo()
-                server.starttls()
-                server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
-                server.send_message(msg)
-            except Exception as e:
-                print(e)
-                return abort(400)
-            finally:
-                server.quit()
+    # ReCaptcha detected a safe interaction
+    print('>>> reCaptcha detects a safe interaction', result['score'])
+    try:
+        msg = EmailMessage()
+        msg['Subject'] = '[Christmas Market] Order #001'
+        msg['From'] = 'Christmas Market <info@christmas-market.be>'
+        msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
+        msg.set_content(
+            'Customer: ' + params['customer'] +
+            'Cart: ' + params['cart'] +
+            'Options: ' + str(params['options'])
+        )
+        msg.add_alternative(
+            '<b>Customer:</b> ' + params['customer'] +
+            '<b>Cart:</b> ' + params['cart'] +
+            '<br><b>Options</b>: ' + str(params['options'])
+        , subtype='html')
 
-            return jsonify({'ok': True})
-    return abort(400)
+        server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
+        server.ehlo()
+        server.starttls()
+        server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
+        server.send_message(msg)
+    except Exception as e:
+        print(e)
+        return abort(400)
+    finally:
+        server.quit()
+    return jsonify({'ok': True})
 
 if __name__ == '__main__':
     app.run()
