@@ -47,9 +47,11 @@ def placeorder():
         for exhibitorId in cart:
             exhibitor = cart[exhibitorId]
             orders += '<h2>{}</h2>'.format(exhibitor['name'])
-            orders += '<table><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr>'
+            orders += '<table><tr><th>Produit</th><th>Prix unitaire</th><th>Quantité</th><th>Prix</th></tr>'
             for item in exhibitor['items']:
-                orders += '<tr><td>{}</td><td>{}</td></tr>'.format(item['product']['name'], item['quantity'], item['price'])
+                unitprice = float(item['product']['price'])
+                quantity = int(item['quantity'])
+                orders += '<tr><td>{}</td><td>{}</td></tr>'.format(item['product']['name'], unitprice, quantity, unitprice * quantity)
             orders += '</table>'
             orders += '<p>Paiement : {}</p>'.format(options[exhibitorId]['payment']['mean'])
             orders += '<p>Livraison : {}</p>'.format(options[exhibitorId]['delivery']['mean'])
