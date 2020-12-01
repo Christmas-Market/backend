@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 
+import html2text
 import os
 import requests
 import smtplib
@@ -37,17 +38,15 @@ def placeorder():
     print('>>> reCaptcha detects a safe interaction', result['score'])
     try:
         customer = params['customer']
+        header = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customer['email'], customer['phone'])
+        body = header
 
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
         msg['From'] = 'Christmas Market <info@christmas-market.be>'
         msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
-        msg.set_content(
-            'Nouvelle commande par :\n- Nom : {}\nE-mail : {}\nTéléphone : {}\n\n'.format(customer['name'], customer['email'], customer['phone'])
-        )
-        msg.add_alternative(
-            '<b>Customer:</b>'
-        , subtype='html')
+        msg.set_content(html2text.html2text(body))
+        msg.add_alternative(body, subtype='html')
 
         server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
         server.ehlo()
