@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, abort
 from flask_cors import CORS
 
 import html2text
+import json
 import os
 import requests
 import smtplib
@@ -41,9 +42,10 @@ def placeorder():
         customer = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customer['email'], customer['phone'])
 
         orders = ''
+        cart = json.loads(params['cart'], encoding='utf-8')
         options = params['options']
-        for exhibitorId in params['cart']:
-            exhibitor = params['cart'][exhibitorId]
+        for exhibitorId in cart:
+            exhibitor = cart[exhibitorId]
             orders += '<h2>{}</h2>'.format(exhibitor['name'])
             orders += '<table><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr>'
             for item in exhibitor['items']:
