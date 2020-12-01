@@ -38,8 +38,20 @@ def placeorder():
     print('>>> reCaptcha detects a safe interaction', result['score'])
     try:
         customer = params['customer']
-        header = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customer['email'], customer['phone'])
-        body = header
+        customer = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customer['email'], customer['phone'])
+
+        orders = ''
+        options = params['options']
+        for exhibitorId in params['cart']:
+            exhibitor = params['cart'][exhibitorId]
+            orders += '<h2>{}</h2>'.format(exhibitor['name'])
+            orders += '<table><tr><th>Produit</th><th>Quantité</th><th>Prix</th></tr>'
+            for item in exhibitor['items']:
+                orders += '<tr><td>{}</td><td>{}</td></tr>'.format(item['product']['name'], item['quantity'], item['price'])
+            orders += '</table>'
+            orders += '<p>Paiement : {}</p>'.format(options[exhibitorId]['payment']['mean'])
+            orders += '<p>Livraison : {}</p>'.format(options[exhibitorId]['delivery']['mean'])
+        body = customer + orders
 
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
