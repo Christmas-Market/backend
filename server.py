@@ -56,7 +56,8 @@ def placeorder():
         orders += '<p>Ce message vous confirme que le(la) ou les exposant(e)(s) ont été informé de cette ou ces dernière(s) et vous recontactera(ront) rapidement.</p>'
 
         customer = params['customer']
-        customer = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customer['email'], customer['phone'])
+        customerEmail = customer['email']
+        customer = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customerEmail, customer['phone'])
 
         cart = json.loads(params['cart'], encoding='utf-8')
         options = params['options']
@@ -78,13 +79,13 @@ def placeorder():
             
             deliveryMean = options[exhibitorId]['delivery']['mean']
             deliveryDetail = ''
-            if deliveryMean in ['delivery', 'pickup', 'postmail', 'store']
+            if deliveryMean in ['delivery', 'pickup', 'postmail', 'store']:
                 deliveryDetail = ' ('
                 if deliveryMean == 'delivery' or deliveryMean == 'postmail':
                     deliveryDetail += options[exhibitorId]['delivery']['address']
-                else if deliveryMean == 'store':
+                elif deliveryMean == 'store':
                     deliveryDetail += options[exhibitorId]['delivery']['selectedStore']
-                else if deliveryMean == 'pickup':
+                elif deliveryMean == 'pickup':
                     deliveryDetail += options[exhibitorId]['delivery']['pickupLocation']
                 deliveryDetail += ')'
             orders += '<li>Livraison : {}{}</li>'.format(deliveryMean, deliveryDetail)
@@ -94,7 +95,7 @@ def placeorder():
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
         msg['From'] = 'Christmas Market <info@christmas-market.be>'
-        msg['To'] = '{}, info@christmas-market.be}'.format(customer['email'])
+        msg['To'] = '{}, info@christmas-market.be}'.format(customerEmail)
         msg['Cci'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
         msg.set_content(html2text.html2text(body))
         msg.add_alternative(body, subtype='html')
