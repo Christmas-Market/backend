@@ -97,7 +97,7 @@ def placeorder():
         msg['From'] = 'Christmas Market <info@christmas-market.be>'
         msg['To'] = '{}, info@christmas-market.be'.format(customerEmail)
         msg['Cci'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
-        msg.set_content(html2text.html2text(body))
+        msg.set_content(html2text.html2text(msg))
         msg.add_alternative(msg, subtype='html')
 
         server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
