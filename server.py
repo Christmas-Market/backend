@@ -76,7 +76,7 @@ def placeorder():
             orderMean = options[exhibitorId]['payment']['mean']
             body += '<tr><td></td><td></td><td></td><td>{} €</td></tr></table>'.format(total)
             body += '<ul>'
-            body += '<li>Paiement : {}</li>'.format(orderMean)
+            body += '<li>Paiement : {}</li>'.format(payment[orderMean])
             
             deliveryMean = options[exhibitorId]['delivery']['mean']
             deliveryDetail = ''
@@ -89,7 +89,7 @@ def placeorder():
                 elif deliveryMean == 'pickup':
                     deliveryDetail += options[exhibitorId]['delivery']['pickupLocation']
                 deliveryDetail += ')'
-            body += '<li>Livraison : {}{}</li>'.format(deliveryMean, deliveryDetail)
+            body += '<li>Livraison : {}{}</li>'.format(delivery[deliveryMean], deliveryDetail)
             body += '</ul>'
 
         msg = EmailMessage()
