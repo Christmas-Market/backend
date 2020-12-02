@@ -9,6 +9,20 @@ import smtplib
 from email.message import EmailMessage
 from email.mime.text import MIMEText
 
+payment = {
+    "cash": "Cash",
+    "online": "En ligne",
+    "banktransfer": "Virement bancaire",
+    "bancontact": "Bancontact"
+}
+
+delivery = {
+    "delivery": "Livraison à domicile",
+    "pickup": "Point de collecte",
+    "postmail": "Livraison postale",
+    "store": "Boutique"
+}
+
 app = Flask(__name__)
 CORS(app)
 
@@ -38,10 +52,12 @@ def placeorder():
     # ReCaptcha detected a safe interaction
     print('>>> reCaptcha detects a safe interaction', result['score'])
     try:
+        orders = '<p>{},<br>Merci pour votre(vos) commande(s) !</p>'
+        orders += '<p>Ce message vous confirme que le(la) ou les exposant(e)(s) ont été informé de cette ou ces dernière(s) et vous recontactera(ront) rapidement.</p>'
+
         customer = params['customer']
         customer = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customer['email'], customer['phone'])
 
-        orders = ''
         cart = json.loads(params['cart'], encoding='utf-8')
         options = params['options']
         for exhibitorId in cart:
@@ -54,15 +70,32 @@ def placeorder():
                 quantity = int(item['quantity'])
                 orders += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{} €</td></tr>'.format(item['product']['name'], unitprice, quantity, unitprice * quantity)
                 total += (unitprice * quantity)
+            
+            orderMean = options[exhibitorId]['payment']['mean']
             orders += '<tr><td></td><td></td><td></td><td>{} €</td></tr></table>'.format(total)
-            orders += '<p>Paiement : {}</p>'.format(options[exhibitorId]['payment']['mean'])
-            orders += '<p>Livraison : {}</p>'.format(options[exhibitorId]['delivery']['mean'])
+            orders += '<ul>'
+            orders += '<li>Paiement : {}</li>'.format(orderMean)
+            
+            deliveryMean = options[exhibitorId]['delivery']['mean']
+            deliveryDetail = ''
+            if deliveryMean in ['delivery', 'pickup', 'postmail', 'store']
+                deliveryDetail = ' ('
+                if deliveryMean == 'delivery' or deliveryMean == 'postmail':
+                    deliveryDetail += options[exhibitorId]['delivery']['address']
+                else if deliveryMean == 'store':
+                    deliveryDetail += options[exhibitorId]['delivery']['selectedStore']
+                else if deliveryMean == 'pickup':
+                    deliveryDetail += options[exhibitorId]['delivery']['pickupLocation']
+                deliveryDetail += ')'
+            orders += '<li>Livraison : {}{}</li>'.format(deliveryMean, deliveryDetail)
+            orders += '</ul>'
         body = customer + orders
 
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
         msg['From'] = 'Christmas Market <info@christmas-market.be>'
-        msg['To'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
+        msg['To'] = '{}, info@christmas-market.be}'.format(customer['email'])
+        msg['Cci'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
         msg.set_content(html2text.html2text(body))
         msg.add_alternative(body, subtype='html')
 
