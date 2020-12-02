@@ -95,7 +95,7 @@ def placeorder():
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
         msg['From'] = 'Christmas Market <info@christmas-market.be>'
-        msg['To'] = '{}, info@christmas-market.be}'.format(customerEmail)
+        msg['To'] = '{}, info@christmas-market.be'.format(customerEmail)
         msg['Cci'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
         msg.set_content(html2text.html2text(body))
         msg.add_alternative(body, subtype='html')
