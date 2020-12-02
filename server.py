@@ -55,28 +55,28 @@ def placeorder():
         customer = params['customer']
         customerEmail = customer['email']
 
-        msg = '<h2>{},</h2><p>Merci pour votre(vos) commande(s) !</p>'.format(customer['name'])
-        msg += '<p>Ce message vous confirme que le(la) ou les exposant(e)(s) ont été informé(e)(s) de votre ou de vos commande(s) et vous recontactera(ront) rapidement.</p>'
+        body = '<h2>{},</h2><p>Merci pour votre(vos) commande(s) !</p>'.format(customer['name'])
+        body += '<p>Ce message vous confirme que le(la) ou les exposant(e)(s) ont été informé(e)(s) de votre ou de vos commande(s) et vous recontactera(ront) rapidement.</p>'
 
-        msg += '<h2>Vos informations</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customerEmail, customer['phone'])
+        body += '<h2>Vos informations</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customerEmail, customer['phone'])
 
         cart = json.loads(params['cart'], encoding='utf-8')
         options = params['options']
         for exhibitorId in cart:
             exhibitor = cart[exhibitorId]
-            msg += '<h2>{}</h2>'.format(exhibitor['name'])
-            msg += '<table><tr><th>Produit</th><th>Prix unitaire</th><th>Quantité</th><th>Prix</th></tr>'
+            body += '<h2>{}</h2>'.format(exhibitor['name'])
+            body += '<table><tr><th>Produit</th><th>Prix unitaire</th><th>Quantité</th><th>Prix</th></tr>'
             total = 0
             for item in exhibitor['items']:
                 unitprice = float(item['product']['price'])
                 quantity = int(item['quantity'])
-                msg += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{} €</td></tr>'.format(item['product']['name'], unitprice, quantity, unitprice * quantity)
+                body += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{} €</td></tr>'.format(item['product']['name'], unitprice, quantity, unitprice * quantity)
                 total += (unitprice * quantity)
             
             orderMean = options[exhibitorId]['payment']['mean']
-            msg += '<tr><td></td><td></td><td></td><td>{} €</td></tr></table>'.format(total)
-            msg += '<ul>'
-            msg += '<li>Paiement : {}</li>'.format(orderMean)
+            body += '<tr><td></td><td></td><td></td><td>{} €</td></tr></table>'.format(total)
+            body += '<ul>'
+            body += '<li>Paiement : {}</li>'.format(orderMean)
             
             deliveryMean = options[exhibitorId]['delivery']['mean']
             deliveryDetail = ''
@@ -89,16 +89,16 @@ def placeorder():
                 elif deliveryMean == 'pickup':
                     deliveryDetail += options[exhibitorId]['delivery']['pickupLocation']
                 deliveryDetail += ')'
-            msg += '<li>Livraison : {}{}</li>'.format(deliveryMean, deliveryDetail)
-            msg += '</ul>'
+            body += '<li>Livraison : {}{}</li>'.format(deliveryMean, deliveryDetail)
+            body += '</ul>'
 
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
         msg['From'] = 'Christmas Market <info@christmas-market.be>'
         msg['To'] = '{}, info@christmas-market.be'.format(customerEmail)
         msg['Cci'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
-        msg.set_content(html2text.html2text(msg))
-        msg.add_alternative(msg, subtype='html')
+        msg.set_content(html2text.html2text(body))
+        msg.add_alternative(body, subtype='html')
 
         server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
         server.ehlo()
