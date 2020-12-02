@@ -52,30 +52,31 @@ def placeorder():
     # ReCaptcha detected a safe interaction
     print('>>> reCaptcha detects a safe interaction', result['score'])
     try:
-        orders = '<p>{},<br>Merci pour votre(vos) commande(s) !</p>'
-        orders += '<p>Ce message vous confirme que le(la) ou les exposant(e)(s) ont été informé de cette ou ces dernière(s) et vous recontactera(ront) rapidement.</p>'
-
         customer = params['customer']
         customerEmail = customer['email']
-        customer = '<h2>Nouvelle commande</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customerEmail, customer['phone'])
+
+        msg = '<h2>{},</h2><p>Merci pour votre(vos) commande(s) !</p>'.format(customer['name'])
+        msg += '<p>Ce message vous confirme que le(la) ou les exposant(e)(s) ont été informé(e)(s) de votre ou de vos commande(s) et vous recontactera(ront) rapidement.</p>'
+
+        msg += '<h2>Vos informations</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customerEmail, customer['phone'])
 
         cart = json.loads(params['cart'], encoding='utf-8')
         options = params['options']
         for exhibitorId in cart:
             exhibitor = cart[exhibitorId]
-            orders += '<h2>{}</h2>'.format(exhibitor['name'])
-            orders += '<table><tr><th>Produit</th><th>Prix unitaire</th><th>Quantité</th><th>Prix</th></tr>'
+            msg += '<h2>{}</h2>'.format(exhibitor['name'])
+            msg += '<table><tr><th>Produit</th><th>Prix unitaire</th><th>Quantité</th><th>Prix</th></tr>'
             total = 0
             for item in exhibitor['items']:
                 unitprice = float(item['product']['price'])
                 quantity = int(item['quantity'])
-                orders += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{} €</td></tr>'.format(item['product']['name'], unitprice, quantity, unitprice * quantity)
+                msg += '<tr><td>{}</td><td>{}</td><td>{}</td><td>{} €</td></tr>'.format(item['product']['name'], unitprice, quantity, unitprice * quantity)
                 total += (unitprice * quantity)
             
             orderMean = options[exhibitorId]['payment']['mean']
-            orders += '<tr><td></td><td></td><td></td><td>{} €</td></tr></table>'.format(total)
-            orders += '<ul>'
-            orders += '<li>Paiement : {}</li>'.format(orderMean)
+            msg += '<tr><td></td><td></td><td></td><td>{} €</td></tr></table>'.format(total)
+            msg += '<ul>'
+            msg += '<li>Paiement : {}</li>'.format(orderMean)
             
             deliveryMean = options[exhibitorId]['delivery']['mean']
             deliveryDetail = ''
@@ -88,9 +89,8 @@ def placeorder():
                 elif deliveryMean == 'pickup':
                     deliveryDetail += options[exhibitorId]['delivery']['pickupLocation']
                 deliveryDetail += ')'
-            orders += '<li>Livraison : {}{}</li>'.format(deliveryMean, deliveryDetail)
-            orders += '</ul>'
-        body = customer + orders
+            msg += '<li>Livraison : {}{}</li>'.format(deliveryMean, deliveryDetail)
+            msg += '</ul>'
 
         msg = EmailMessage()
         msg['Subject'] = '[Christmas Market] Order #001'
@@ -98,7 +98,7 @@ def placeorder():
         msg['To'] = '{}, info@christmas-market.be'.format(customerEmail)
         msg['Cci'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
         msg.set_content(html2text.html2text(body))
-        msg.add_alternative(body, subtype='html')
+        msg.add_alternative(msg, subtype='html')
 
         server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
         server.ehlo()
