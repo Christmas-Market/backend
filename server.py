@@ -26,6 +26,25 @@ delivery = {
 app = Flask(__name__)
 CORS(app)
 
+def send_email(to, body):
+    try:
+        msg = EmailMessage()
+        msg['Subject'] = '[Christmas Market] Order #001'
+        msg['From'] = 'Christmas Market <info@christmas-market.be>'
+        msg['To'] = to
+        msg.set_content(html2text.html2text(body))
+        msg.add_alternative(body, subtype='html')
+
+        server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
+        server.ehlo()
+        server.starttls()
+        server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
+        server.send_message(msg)
+    except Exception as e:
+        raise e
+    finally:
+        server.quit()
+
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({'ok': True})
@@ -53,12 +72,13 @@ def placeorder():
     print('>>> reCaptcha detects a safe interaction', result['score'])
     try:
         customer = params['customer']
+        customerName = customer['name']
         customerEmail = customer['email']
 
-        body = '<h2>{},</h2><p>Merci pour votre(vos) commande(s) !</p>'.format(customer['name'])
+        body = '<h2>{},</h2><p>Merci pour votre(vos) commande(s) !</p>'.format(customerName)
         body += '<p>Ce message vous confirme que le(la) ou les exposant(e)(s) ont été informé(e)(s) de votre ou de vos commande(s) et vous recontactera(ront) rapidement.</p>'
 
-        body += '<h2>Vos informations</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customer['name'], customerEmail, customer['phone'])
+        body += '<h2>Vos informations</h2><ul><li>Nom : {}</li><li>E-mail : {}</li><li>Téléphone : {}</li></ul>'.format(customerName, customerEmail, customer['phone'])
 
         cart = json.loads(params['cart'], encoding='utf-8')
         options = params['options']
@@ -92,24 +112,11 @@ def placeorder():
             body += '<li>Livraison : {}{}</li>'.format(delivery[deliveryMean], deliveryDetail)
             body += '</ul>'
 
-        msg = EmailMessage()
-        msg['Subject'] = '[Christmas Market] Order #001'
-        msg['From'] = 'Christmas Market <info@christmas-market.be>'
-        msg['To'] = '{}, info@christmas-market.be'.format(customerEmail)
-        msg['Cci'] = 'seb478@gmail.com, guillaumedemoff@gmail.com'
-        msg.set_content(html2text.html2text(body))
-        msg.add_alternative(body, subtype='html')
-
-        server = smtplib.SMTP(os.environ['SMTP_SERVER'], 587)
-        server.ehlo()
-        server.starttls()
-        server.login(os.environ['SMTP_USERNAME'], os.environ['SMTP_PASSWORD'])
-        server.send_message(msg)
+        send_email('{} <{}>'.format(customerName, customerEmail), body)
+        send_email('seb478@gmail.com, guillaumedemoff@gmail.com', body)
     except Exception as e:
         print(e)
         return abort(400)
-    finally:
-        server.quit()
     return jsonify({'ok': True})
 
 if __name__ == '__main__':
